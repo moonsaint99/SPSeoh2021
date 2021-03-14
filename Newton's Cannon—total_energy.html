@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<!--
+	Here's the full origional code taken directly from the website. We should probably
+	include this copyright notice with the final tutorial, along with a note explaining 
+	that we have changed it from it's origional version.
+-->
+
+<!--
+    Newton's Cannon (finished version), copyright 2014, Daniel V. Schroeder
+    
+    Permission is hereby granted, free of charge, to any person obtaining a copy of 
+    this software and associated data and documentation (the "Software"), to deal in 
+    the Software without restriction, including without limitation the rights to 
+    use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies 
+    of the Software, and to permit persons to whom the Software is furnished to do 
+    so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all 
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+    INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+    PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR 
+    ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
+    OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR 
+    OTHER DEALINGS IN THE SOFTWARE.
+
+    Except as contained in this notice, the name of the author shall not be used in 
+    advertising or otherwise to promote the sale, use or other dealings in this 
+    Software without prior written authorization.
+
+    This simulation is intended to accompany the tutorial found at 
+    physics.weber.edu/schroeder/html5/.
+-->
+
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=640">
+    <title>Newton's Cannon</title>
+    <style>
+        .customButton {     /* style a link as a push-button */
+            display: inline-block; 
+            width: 60px; 
+            height: 24px; 
+            line-height: 24px; 
+            font-size: 15px; 
+            font-family: sans-serif; 
+            text-align: center;
+            color: black; 
+            background: -webkit-linear-gradient(white,#eeeeee,#eeeeee,#e0e0e0);
+            background: linear-gradient(white,#eeeeee,#eeeeee,#e0e0e0);
+            text-decoration: none; 
+            border: 1px solid gray; 
+            border-radius: 5px;
+            -webkit-user-select: none;
+            -moz-user-select: -moz-none;
+            -ms-user-select: none;
+            user-select: none;
+            cursor: pointer;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+        }
+        .customButton:active {
+            background: -webkit-linear-gradient(#909090,#808080,#808080,#707070);
+            background: linear-gradient(#909090,#808080,#808080,#707070);
+        }
+        input[type="range"] {
+            width: 140px;
+            padding: 0px;       /* remove extra space in IE */
+            -webkit-user-select: none;
+            -moz-user-select: -moz-none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        input[type="range"]::-ms-tooltip {
+            display: none;          /* hide automatic readout in IE */
+        }
+        input[type="range"]::-ms-track {
+            color: transparent;     /* hide tick marks in IE */
+        }   
+    </style>
+</head>
+
+<body style="font-family:sans-serif; font-size:15px; width:600px; 
+        margin-left:auto; margin-right:auto; background-color:#c0c0c0;">
+
+    <h1 style="font-size:24px; text-align:center;">Newton&rsquo;s Cannon</h1>
+
+    <div style="width:500px; margin-left:auto; margin-right:auto; position:relative;">
+        <img src="NewtonDrawing.jpg" width="500" height="500" style="position:absolute;">
+        <canvas id="trailCanvas" width="500" height="500" style="position:absolute;"></canvas>
+        <canvas id="theCanvas" width="500" height="500" style="position:relative;">
+            Canvas not supported; please update your browser.
+        </canvas>
+    </div>
+	<!-- ENERGY!!! added <p> total energy for a 100kg object: <span id="energy"></span>kJ</p> to the below
+	div as well as showEnergy(); to oninput and onchange-->
+    <div style="text-align:center; -webkit-text-size-adjust:100%;">
+        <a class="customButton" href="javascript:void(0)" onclick="fireProjectile();" ontouchstart="">Fire!</a>
+        &nbsp;&nbsp;&nbsp;
+        Initial speed= 
+        <span id="speedReadout" style="display:inline-block; width:2.3em; text-align:right;">3000</span> m/s
+        <input type="range" id="speedSlider" min="0" max="8000" step="100" value="3000" 
+                oninput="showSpeed(); showEnergy();" onchange="showSpeed(); showEnergy();">
+        &nbsp;&nbsp;&nbsp;
+        <a class="customButton" href="javascript:void(0)" onclick="clearTrails();" ontouchstart="">Clear</a>
+        <p> Total energy for a 100kg object= <span id="energy"></span>kJ</p> 
+    </div>
+
+    <p>This simulation is based on Isaac Newton&rsquo;s famous thought
+    experiment and illustration of firing a projectile from a high
+    mountaintop at various speeds, as he described in
+    <a href="http://books.google.com/books?id=DXE9AAAAcAAJ">A 
+    Treatise of the System of the World</a>.</p>
+
+    <script>
+
+        var theCanvas = document.getElementById("theCanvas");   // for drawing the projectile
+        var theContext = theCanvas.getContext("2d");
+        var trailCanvas = document.getElementById("trailCanvas");   // for drawing trails
+        var trailContext = trailCanvas.getContext("2d");
+        var speedSlider = document.getElementById("speedSlider");
+        var speedReadout = document.getElementById("speedReadout");
+        var earthRadius = 6371000;                  // meters EDIT RADIUS HERRE FOR MOONMODE!!!
+        var mountainHeight = earthRadius * 0.165;   // to match image
+        var x, y, vx, vy;                           // position and velocity
+        var timer;                                  // for animation timing
+        //ENERGY!!! sets energy initially
+        document.getElementById("energy").innerHTML = (.5 * 100 * speedSlider.value * speedSlider.value - 6.67e-11 * 100 * 5.97e24 / (earthRadius + mountainHeight))/1000;
+        //ENERGY!!! end
+		        // Fire the "cannon":
+        function fireProjectile() {
+            window.clearTimeout(timer);     // first clear any flight in progress
+            x = 0;
+            y = earthRadius + mountainHeight;
+            vx = Number(speedSlider.value);
+            vy = 0;
+            moveProjectile();
+        }
+		function updateE() {
+			
+			
+			}
+        // Move the projectile by a single time step and schedule next move:
+        function moveProjectile() {
+            var newtonG = 6.67e-11;         // gravitational constant in SI units
+            var earthMass = 5.97e24;        // kilograms EDIT MASS HERE FOR MOONMODE!!!
+            var dt = 5;                     // time step in seconds
+            var r = Math.sqrt(x*x + y*y);
+            if (r > earthRadius) {
+                var accel = newtonG * earthMass / (r * r);  // magnitude of the acceleration
+                var ax = -accel * x / r;
+                var ay = -accel * y / r;
+                vx += ax * dt;
+                vy += ay * dt;
+                var lastx = x;
+                x += vx * dt;
+                y += vy * dt;
+                drawProjectile();
+                if (!((lastx < 0) && (x >= 0))) {   // if orbit isn't complete...
+                    timer = window.setTimeout(moveProjectile, 1000/30);     // come back in 1/30 second
+                }
+            }
+        }
+
+        // Draw the projectile at its current location, and add a dot to the trail:
+        function drawProjectile() {
+            theContext.clearRect(0, 0, theCanvas.width, theCanvas.height);
+            var metersPerPixel = earthRadius / (0.355 * theCanvas.width);
+            var pixelX = theCanvas.width/2 + x/metersPerPixel;
+            var pixelY = theCanvas.height/2 - y/metersPerPixel;
+            theContext.beginPath();
+            theContext.arc(pixelX, pixelY, 5, 0, 2*Math.PI);
+            var theGradient = theContext.createRadialGradient(pixelX-1, pixelY-2, 1, pixelX, pixelY, 5);
+            theGradient.addColorStop(0, "#ffd0d0");
+            theGradient.addColorStop(1, "#ff0000");
+            theContext.fillStyle = theGradient;
+            theContext.fill();
+            trailContext.fillStyle = "black";
+            trailContext.fillRect(pixelX-0.5, pixelY-0.5, 1, 1);
+        }
+
+        // Update the speed slider readout:
+        function showSpeed() {
+            speedReadout.innerHTML = speedSlider.value; 
+        }
+        //ENERGY!! updates energy readout
+		function showEnergy() {
+			document.getElementById("energy").innerHTML = (.5 * 100 * speedSlider.value * speedSlider.value - 6.67e-11 * 100 * 5.97e24 / (earthRadius + mountainHeight))/1000;
+		}        
+		//ENERGY!! end
+        // Clear the trails from the image:
+        function clearTrails() {
+            trailContext.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+        }
+       
+    </script>
+
+</body>
+
+</html>
