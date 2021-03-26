@@ -1,7 +1,240 @@
 <!DOCTYPE html>
+<!--
+	Here's the full origional code taken directly from the website. We should probably
+	include this copyright notice with the final tutorial, along with a note explaining 
+	that we have changed it from it's origional version.
+-->
+
+<!--
+    Newton's Cannon (finished version), copyright 2014, Daniel V. Schroeder
+    
+    Permission is hereby granted, free of charge, to any person obtaining a copy of 
+    this software and associated data and documentation (the "Software"), to deal in 
+    the Software without restriction, including without limitation the rights to 
+    use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies 
+    of the Software, and to permit persons to whom the Software is furnished to do 
+    so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all 
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+    INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+    PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR 
+    ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
+    OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR 
+    OTHER DEALINGS IN THE SOFTWARE.
+
+    Except as contained in this notice, the name of the author shall not be used in 
+    advertising or otherwise to promote the sale, use or other dealings in this 
+    Software without prior written authorization.
+
+    This simulation is intended to accompany the tutorial found at 
+    physics.weber.edu/schroeder/html5/.
+-->
+
 <html>
-<body>
-<h1>Hello Physicists!</h1>
-<p>This page will be populated with physics very soon.</p>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=640">
+    <title>Newton's Cannon</title>
+    <style>
+        .customButton {     /* style a link as a push-button */
+            display: inline-block; 
+            width: 60px; 
+            height: 24px; 
+            line-height: 24px; 
+            font-size: 15px; 
+            font-family: sans-serif; 
+            text-align: center;
+            color: black; 
+            background: -webkit-linear-gradient(white,#eeeeee,#eeeeee,#e0e0e0);
+            background: linear-gradient(white,#eeeeee,#eeeeee,#e0e0e0);
+            text-decoration: none; 
+            border: 1px solid gray; 
+            border-radius: 5px;
+            -webkit-user-select: none;
+            -moz-user-select: -moz-none;
+            -ms-user-select: none;
+            user-select: none;
+            cursor: pointer;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+        }
+        .customButton:active {
+            background: -webkit-linear-gradient(#909090,#808080,#808080,#707070);
+            background: linear-gradient(#909090,#808080,#808080,#707070);
+        }
+        input[type="range"] {
+            width: 140px;
+            padding: 0px;       /* remove extra space in IE */
+            -webkit-user-select: none;
+            -moz-user-select: -moz-none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        input[type="range"]::-ms-tooltip {
+            display: none;          /* hide automatic readout in IE */
+        }
+        input[type="range"]::-ms-track {
+            color: transparent;     /* hide tick marks in IE */
+        }   
+    </style>
+</head>
+
+<body style="font-family:sans-serif; font-size:15px; width:600px; 
+        margin-left:auto; margin-right:auto; background-color:#c0c0c0;">
+
+    <h1 style="font-size:24px; text-align:center;">Newton&rsquo;s Cannon</h1>
+
+    <p>
+        Why do people and things float in space instead of falling back down to the ground? 
+        If you’re like most people, you probably guessed its because there’s no gravity in space. 
+    </p>
+
+    <p>
+        Well, let’s do some science with this idea and see whether it works or not. 
+        The hypothesis is that if you go high above the ground and throw a ball gently, it’ll float away because there’s no gravity way up in space. 
+        Lucky for you, we’ve prepared a little simulation of exactly this that you can use below, using the real laws of physics. 
+        This simulation is Newton’s Cannon, showing Isaac Newton’s idea that if you put a cannon on top of a mountain so tall it was in space, you could launch a ball without air resistance into orbit. 
+    </p>
+
+    <p>
+        Go ahead and drag the slider to 100m/s (100 meters per second, where a meter is about three feet). 
+        That’s the speed our cannon will fire the ball at. 
+        Do you think it will enter orbit? Give it a shot and find out.
+    </p>
+
+    <div style="width:500px; margin-left:auto; margin-right:auto; position:relative;">
+        <img src="NewtonDrawing.jpg" width="500" height="500" style="position:absolute;">
+        <canvas id="trailCanvas" width="500" height="500" style="position:absolute;"></canvas>
+        <canvas id="theCanvas" width="500" height="500" style="position:relative;">
+            Canvas not supported; please update your browser.
+        </canvas>
+    </div>
+	<!-- ENERGY!!! added <p> total energy for a 100kg object: <span id="energy"></span>kJ</p> to the below
+	div as well as showEnergy(); to oninput and onchange-->
+    <div style="text-align:center; -webkit-text-size-adjust:100%;">
+        <a class="customButton" href="javascript:void(0)" onclick="fireProjectile();" ontouchstart="">Fire!</a>
+        &nbsp;&nbsp;&nbsp;
+        Initial speed= 
+        <span id="speedReadout" style="display:inline-block; width:2.3em; text-align:right;">3000</span> m/s
+        <input type="range" id="speedSlider" min="0" max="8000" step="100" value="3000" 
+                oninput="showSpeed(); showEnergy();" onchange="showSpeed(); showEnergy();">
+        &nbsp;&nbsp;&nbsp;
+        <a class="customButton" href="javascript:void(0)" onclick="clearTrails();" ontouchstart="">Clear</a>
+        <p> Total energy for a 100kg object= <span id="energy"></span>kJ</p> 
+    </div>
+
+    <p>
+        That was boring. Why don’t you increase the speed to 2000m/s? That’s right, two kilometers per second. We’re going to throw the ball sideways so fast it could travel more than a mile in a second. What do you think this will look like? Give it a shot and see how far the ball flies.
+    </p>
+
+    <p>
+        Still not very far at all! To be sure, it flew hundreds of kilometers across Earth’s surface, but that wasn’t quite enough for it to stay in space. Try 5000m/s, 6000m/s, and 7200m/s and see what happens. 
+    </p>
+
+    <p>
+        Something striking happens when you fire it fast enough – once it’s halfway around the planet, if you fired it at 7200m/s, it starts going away from the planet instead of toward it, and it comes right back to its original point! There’s no new force pulling it away from the planet, the ball is just flying sideways so fast that gravity can’t keep it near the surface – it moves sideways faster than gravity can keep it curving down toward Earth. 
+    </p>
+
+    <p>
+        The lesson we’ve learned from all of this is that there’s a whole lot of gravity in space! Things don’t just float around in space because there’s no gravity, they stay up because they’re all travelling at the right velocity to be continuously falling sideways so fast that they simply miss the ground every time they go around and get slingshotted back around again.
+    </p>
+
+    <p>
+        When Newton discovered gravity and how the planets orbited, he had to invent calculus to make the math work. That’s a bit complicated, but if you want to understand the physics and the math we used to write this simulation without knowing calculus, follow this link, and we have another demonstration of how to do the math to simulate a whole orbit using just a spreadsheet and algebra:
+    </p>
+
+    <p>This simulation is based on Isaac Newton&rsquo;s famous thought
+    experiment and illustration of firing a projectile from a high
+    mountaintop at various speeds, as he described in
+    <a href="http://books.google.com/books?id=DXE9AAAAcAAJ">A 
+    Treatise of the System of the World</a>.</p>
+
+    <script>
+
+        var theCanvas = document.getElementById("theCanvas");   // for drawing the projectile
+        var theContext = theCanvas.getContext("2d");
+        var trailCanvas = document.getElementById("trailCanvas");   // for drawing trails
+        var trailContext = trailCanvas.getContext("2d");
+        var speedSlider = document.getElementById("speedSlider");
+        var speedReadout = document.getElementById("speedReadout");
+        var earthRadius = 6371000;                  // meters EDIT RADIUS HERRE FOR MOONMODE!!!
+        var mountainHeight = earthRadius * 0.165;   // to match image
+        var x, y, vx, vy;                           // position and velocity
+        var timer;                                  // for animation timing
+        //ENERGY!!! sets energy initially
+        document.getElementById("energy").innerHTML = (.5 * 100 * speedSlider.value * speedSlider.value - 6.67e-11 * 100 * 5.97e24 / (earthRadius + mountainHeight))/1000;
+        //ENERGY!!! end
+		        // Fire the "cannon":
+        function fireProjectile() {
+            window.clearTimeout(timer);     // first clear any flight in progress
+            x = 0;
+            y = earthRadius + mountainHeight;
+            vx = Number(speedSlider.value);
+            vy = 0;
+            moveProjectile();
+        }
+		function updateE() {
+			
+			
+			}
+        // Move the projectile by a single time step and schedule next move:
+        function moveProjectile() {
+            var newtonG = 6.67e-11;         // gravitational constant in SI units
+            var earthMass = 5.97e24;        // kilograms EDIT MASS HERE FOR MOONMODE!!!
+            var dt = 5;                     // time step in seconds
+            var r = Math.sqrt(x*x + y*y);
+            if (r > earthRadius) {
+                var accel = newtonG * earthMass / (r * r);  // magnitude of the acceleration
+                var ax = -accel * x / r;
+                var ay = -accel * y / r;
+                vx += ax * dt;
+                vy += ay * dt;
+                var lastx = x;
+                x += vx * dt;
+                y += vy * dt;
+                drawProjectile();
+                if (!((lastx < 0) && (x >= 0))) {   // if orbit isn't complete...
+                    timer = window.setTimeout(moveProjectile, 1000/30);     // come back in 1/30 second
+                }
+            }
+        }
+
+        // Draw the projectile at its current location, and add a dot to the trail:
+        function drawProjectile() {
+            theContext.clearRect(0, 0, theCanvas.width, theCanvas.height);
+            var metersPerPixel = earthRadius / (0.355 * theCanvas.width);
+            var pixelX = theCanvas.width/2 + x/metersPerPixel;
+            var pixelY = theCanvas.height/2 - y/metersPerPixel;
+            theContext.beginPath();
+            theContext.arc(pixelX, pixelY, 5, 0, 2*Math.PI);
+            var theGradient = theContext.createRadialGradient(pixelX-1, pixelY-2, 1, pixelX, pixelY, 5);
+            theGradient.addColorStop(0, "#ffd0d0");
+            theGradient.addColorStop(1, "#ff0000");
+            theContext.fillStyle = theGradient;
+            theContext.fill();
+            trailContext.fillStyle = "black";
+            trailContext.fillRect(pixelX-0.5, pixelY-0.5, 1, 1);
+        }
+
+        // Update the speed slider readout:
+        function showSpeed() {
+            speedReadout.innerHTML = speedSlider.value; 
+        }
+        //ENERGY!! updates energy readout
+		function showEnergy() {
+			document.getElementById("energy").innerHTML = (.5 * 100 * speedSlider.value * speedSlider.value - 6.67e-11 * 100 * 5.97e24 / (earthRadius + mountainHeight))/1000;
+		}        
+		//ENERGY!! end
+        // Clear the trails from the image:
+        function clearTrails() {
+            trailContext.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+        }
+       
+    </script>
+
 </body>
+
 </html>
