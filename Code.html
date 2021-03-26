@@ -1,10 +1,10 @@
-<!DOCTYPE html>
-<!--
-	Here's the full origional code taken directly from the website. We should probably
-	include this copyright notice with the final tutorial, along with a note explaining 
-	that we have changed it from it's origional version.
+<!-- 
+    This EOH demo is based on the "Newton's Cannon" demo by Daniel V. Schroeder. It has
+    been modified to...
+    The origional copyright notice has been included at the start of this code. If you 
+    are interested in this sort of thing (which is not unlikely as you've opened the 
+    source code), check out the tutorial link below, it is quite useful!
 -->
-
 <!--
     Newton's Cannon (finished version), copyright 2014, Daniel V. Schroeder
     
@@ -87,24 +87,6 @@
 
     <h1 style="font-size:24px; text-align:center;">Newton&rsquo;s Cannon</h1>
 
-    <p>
-        Why do people and things float in space instead of falling back down to the ground? 
-        If you’re like most people, you probably guessed its because there’s no gravity in space. 
-    </p>
-
-    <p>
-        Well, let’s do some science with this idea and see whether it works or not. 
-        The hypothesis is that if you go high above the ground and throw a ball gently, it’ll float away because there’s no gravity way up in space. 
-        Lucky for you, we’ve prepared a little simulation of exactly this that you can use below, using the real laws of physics. 
-        This simulation is Newton’s Cannon, showing Isaac Newton’s idea that if you put a cannon on top of a mountain so tall it was in space, you could launch a ball without air resistance into orbit. 
-    </p>
-
-    <p>
-        Go ahead and drag the slider to 100m/s (100 meters per second, where a meter is about three feet). 
-        That’s the speed our cannon will fire the ball at. 
-        Do you think it will enter orbit? Give it a shot and find out.
-    </p>
-
     <div style="width:500px; margin-left:auto; margin-right:auto; position:relative;">
         <img src="NewtonDrawing.jpg" width="500" height="500" style="position:absolute;">
         <canvas id="trailCanvas" width="500" height="500" style="position:absolute;"></canvas>
@@ -112,69 +94,38 @@
             Canvas not supported; please update your browser.
         </canvas>
     </div>
-	<!-- ENERGY!!! added <p> total energy for a 100kg object: <span id="energy"></span>kJ</p> to the below
-	div as well as showEnergy(); to oninput and onchange-->
+
     <div style="text-align:center; -webkit-text-size-adjust:100%;">
         <a class="customButton" href="javascript:void(0)" onclick="fireProjectile();" ontouchstart="">Fire!</a>
         &nbsp;&nbsp;&nbsp;
-        Initial speed= 
+        Initial speed = 
         <span id="speedReadout" style="display:inline-block; width:2.3em; text-align:right;">3000</span> m/s
         <input type="range" id="speedSlider" min="0" max="8000" step="100" value="3000" 
-                oninput="showSpeed(); showEnergy();" onchange="showSpeed(); showEnergy();">
+                oninput="showSpeed();" onchange="showSpeed();">
         &nbsp;&nbsp;&nbsp;
         <a class="customButton" href="javascript:void(0)" onclick="clearTrails();" ontouchstart="">Clear</a>
-        <p> Total energy for a 100kg object= <span id="energy"></span>J</p> 
     </div>
-
-  	<p> All energy values are for a 100kg mass, which would be a small 
-	satellite or a 220lb human. This is much less than a NASA astronaut 
-	on a space walk—an empty suit is 280lb (127kg)! Total energy should 
-	be constant and equal to the value below the speed slider, but you 
-	can see it change a little due to the limitations of this type of 
-	iterative simulation.</p>
-  
-    <p>
-        That was boring. Why don’t you increase the speed to 2000m/s? That’s right, two kilometers per second. We’re going to throw the ball sideways so fast it could travel more than a mile in a second. What do you think this will look like? Give it a shot and see how far the ball flies.
-    </p>
-
-    <p>
-        Still not very far at all! To be sure, it flew hundreds of kilometers across Earth’s surface, but that wasn’t quite enough for it to stay in space. Try 5000m/s, 6000m/s, and 7200m/s and see what happens. 
-    </p>
-
-    <p>
-        Something striking happens when you fire it fast enough – once it’s halfway around the planet, if you fired it at 7200m/s, it starts going away from the planet instead of toward it, and it comes right back to its original point! There’s no new force pulling it away from the planet, the ball is just flying sideways so fast that gravity can’t keep it near the surface – it moves sideways faster than gravity can keep it curving down toward Earth. 
-    </p>
-
-    <p>
-        The lesson we’ve learned from all of this is that there’s a whole lot of gravity in space! Things don’t just float around in space because there’s no gravity, they stay up because they’re all travelling at the right velocity to be continuously falling sideways so fast that they simply miss the ground every time they go around and get slingshotted back around again.
-    </p>
-
-    <p>
-        When Newton discovered gravity and how the planets orbited, he had to invent calculus to make the math work. That’s a bit complicated, but if you want to understand the physics and the math we used to write this simulation without knowing calculus, follow this link, and we have another demonstration of how to do the math to simulate a whole orbit using just a spreadsheet and algebra:
-    </p>
 
     <p>This simulation is based on Isaac Newton&rsquo;s famous thought
     experiment and illustration of firing a projectile from a high
     mountaintop at various speeds, as he described in
     <a href="http://books.google.com/books?id=DXE9AAAAcAAJ">A 
     Treatise of the System of the World</a>.</p>
+
     <script>
 
         var theCanvas = document.getElementById("theCanvas");   // for drawing the projectile
         var theContext = theCanvas.getContext("2d");
         var trailCanvas = document.getElementById("trailCanvas");   // for drawing trails
         var trailContext = trailCanvas.getContext("2d");
-        var ctx = theCanvas.getContext("2d");						// for putting in text, energy and speed
         var speedSlider = document.getElementById("speedSlider");
         var speedReadout = document.getElementById("speedReadout");
         var earthRadius = 6371000;                  // meters EDIT RADIUS HERRE FOR MOONMODE!!!
         var mountainHeight = earthRadius * 0.165;   // to match image
         var x, y, vx, vy;                           // position and velocity
         var timer;                                  // for animation timing
-        //ENERGY!!! sets energy initially
-        document.getElementById("energy").innerHTML = (.5 * 100 * speedSlider.value * speedSlider.value -( (6.67e-11 * 100 * 5.97e24) / (earthRadius + mountainHeight))).toExponential(3);
-        //ENERGY!!! end
-		        // Fire the "cannon":
+
+        // Fire the "cannon":
         function fireProjectile() {
             window.clearTimeout(timer);     // first clear any flight in progress
             x = 0;
@@ -183,10 +134,7 @@
             vy = 0;
             moveProjectile();
         }
-		function updateE() {
-			
-			
-			}
+
         // Move the projectile by a single time step and schedule next move:
         function moveProjectile() {
             var newtonG = 6.67e-11;         // gravitational constant in SI units
@@ -224,32 +172,18 @@
             theContext.fill();
             trailContext.fillStyle = "black";
             trailContext.fillRect(pixelX-0.5, pixelY-0.5, 1, 1);
-            var KE = .5*100*(vx*vx + vy*vy); 			//kinetic energy updates
-            var velocity = Math.sqrt(vx*vx + vy*vy);		//velocity
-            var toast = KE*2/252000;						//number of slices of toast
-            var UGupdate = (-6.67e-11*5.97e24*100)/(Math.sqrt(x*x+y*y))		//gravitational energy
-            ctx.font = "14px Times";					//font
-            ctx.strokeText("Kinetic Energy: " + KE.toExponential(3) + "J" + " or enough energy to make " + toast.toExponential(3) + " slices of toast", 5, 12);						//kinetic energy writing. last 2 numbers are text position
-            ctx.strokeText("That's enough toast for a stack " + Math.round(toast*.0127) + "m or " + Math.round(toast*.5/12) + "ft high! That's quite the breakfast!", 5, 27);		//height of hypothetical toast tower. last 2 numbers are text position
-            ctx.strokeText("Velocity: " + velocity.toExponential(3) + " m/s" + " or " + (velocity*2.23694).toExponential(3) + "mph", 5, 490);										//velocity updates. last 2 numbers are text position
-            ctx.strokeText("Gravitational potential energy: " + UGupdate.toExponential(3) + "J                                Total energy: " + (UGupdate+KE).toExponential(3) + "J", 5, 477);					//grav and total energy updates. last 2 numbers are text position
-
         }
 
         // Update the speed slider readout:
         function showSpeed() {
-            speedReadout.innerHTML = speedSlider.value; 
+            speedReadout.innerHTML = speedSlider.value;
         }
-        //ENERGY!! updates energy readout
-		function showEnergy() {
-			document.getElementById("energy").innerHTML = (.5 * 100 * speedSlider.value * speedSlider.value - 6.67e-11 * 100 * 5.97e24 / (earthRadius + mountainHeight)).toExponential(3);
-		}        
-		//ENERGY!! end
+
         // Clear the trails from the image:
         function clearTrails() {
             trailContext.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
         }
-       
+
     </script>
 
 </body>
